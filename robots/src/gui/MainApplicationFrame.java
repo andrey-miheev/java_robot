@@ -3,7 +3,11 @@ package gui;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
+import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
@@ -20,6 +24,7 @@ import log.Logger;
 public class MainApplicationFrame extends JFrame
 {
     private final JDesktopPane desktopPane = new JDesktopPane();
+    private boolean isExiting = false;
 
     public MainApplicationFrame() {
         //Make the big window be indented 50 pixels from each edge
@@ -41,7 +46,59 @@ public class MainApplicationFrame extends JFrame
         addWindow(gameWindow);
 
         setJMenuBar(generateMenuBar());
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setupWindowClosingHandler();
+    }
+
+    /**
+     * Обработчик события закрытия окна с показом диалога подтверждения
+     */
+    private void setupWindowClosingHandler(){
+        setDefaultCloseOperation(EXIT_ON_CLOSE); // Меняем на EXIT_ON_CLOSE
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                if (!isExiting) {
+                    confirmExit();
+                }
+            }
+        });
+    }
+
+    /**
+     * Показывает диалог подтверждения выхода
+     */
+    private void confirmExit(){
+        if (isExiting) return;
+        int result = JOptionPane.showConfirmDialog(
+                this,
+                "Вы действительно хотите выйти из приложения?",
+                "Подтверждение выхода",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (result == JOptionPane.YES_OPTION) {
+            isExiting = true;
+            exitApplication();
+        }
+    }
+
+    /**
+     * Инициирует закрытие приложения
+     */
+    private void exitApplication() {
+        Toolkit.getDefaultToolkit().getSystemEventQueue().postEvent(
+                new WindowEvent(this, WindowEvent.WINDOW_CLOSING)
+        );
+    }
+
+    @Override
+    protected void processWindowEvent(WindowEvent e) {
+        if (e.getID() == WindowEvent.WINDOW_CLOSING && !isExiting) {
+            confirmExit();
+        } else {
+            super.processWindowEvent(e);
+        }
     }
 
     protected LogWindow createLogWindow()
@@ -96,10 +153,36 @@ public class MainApplicationFrame extends JFrame
     private JMenuBar generateMenuBar(){
         JMenuBar menuBar = new JMenuBar();
 
+        menuBar.add(createFileMenu());
         menuBar.add(createLookAndFeelMenu());
         menuBar.add(createTestMenu());
 
         return menuBar;
+    }
+
+    /**
+     * Создает выпадающее меню "Файл"
+     */
+    private JMenu createFileMenu(){
+        JMenu menu = new JMenu("Файл");
+        menu.setMnemonic(KeyEvent.VK_F);
+        menu.getAccessibleContext().setAccessibleDescription(
+                "Управление файлами и приложением");
+        menu.add(createExitMenuItem());
+
+        return menu;
+    }
+
+    /**
+     * Создает пункт меню для выхода из приложения
+     */
+    private JMenuItem createExitMenuItem(){
+        JMenuItem exitItem = new JMenuItem("Выход", KeyEvent.VK_X);
+        exitItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, KeyEvent.ALT_DOWN_MASK));
+        exitItem.addActionListener((event) -> {
+            confirmExit();
+        });
+        return exitItem;
     }
 
     /**
