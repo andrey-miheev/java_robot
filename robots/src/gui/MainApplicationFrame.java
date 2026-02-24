@@ -82,17 +82,10 @@ public class MainApplicationFrame extends JFrame
 
         if (result == JOptionPane.YES_OPTION) {
             setDefaultCloseOperation(EXIT_ON_CLOSE);
-            exitApplication();
+            Toolkit.getDefaultToolkit().getSystemEventQueue().postEvent(
+                    new WindowEvent(this, WindowEvent.WINDOW_CLOSING)
+            );
         }
-    }
-
-    /**
-     * Инициирует закрытие приложения
-     */
-    private void exitApplication() {
-        Toolkit.getDefaultToolkit().getSystemEventQueue().postEvent(
-                new WindowEvent(this, WindowEvent.WINDOW_CLOSING)
-        );
     }
 
     /**
