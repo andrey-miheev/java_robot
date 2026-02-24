@@ -20,12 +20,16 @@ import javax.swing.UnsupportedLookAndFeelException;
 
 import log.Logger;
 
-
+/**
+ * Главное окно приложения
+ */
 public class MainApplicationFrame extends JFrame
 {
     private final JDesktopPane desktopPane = new JDesktopPane();
-    private boolean isExiting = false;
 
+    /**
+     * Конструктор главного окна
+     */
     public MainApplicationFrame() {
         //Make the big window be indented 50 pixels from each edge
         //of the screen.
@@ -53,11 +57,11 @@ public class MainApplicationFrame extends JFrame
      * Обработчик события закрытия окна с показом диалога подтверждения
      */
     private void setupWindowClosingHandler(){
-        setDefaultCloseOperation(EXIT_ON_CLOSE); // Меняем на EXIT_ON_CLOSE
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                if (!isExiting) {
+                if (getDefaultCloseOperation() == DO_NOTHING_ON_CLOSE) {
                     confirmExit();
                 }
             }
@@ -68,7 +72,6 @@ public class MainApplicationFrame extends JFrame
      * Показывает диалог подтверждения выхода
      */
     private void confirmExit(){
-        if (isExiting) return;
         int result = JOptionPane.showConfirmDialog(
                 this,
                 "Вы действительно хотите выйти из приложения?",
@@ -78,7 +81,7 @@ public class MainApplicationFrame extends JFrame
         );
 
         if (result == JOptionPane.YES_OPTION) {
-            isExiting = true;
+            setDefaultCloseOperation(EXIT_ON_CLOSE);
             exitApplication();
         }
     }
@@ -92,15 +95,10 @@ public class MainApplicationFrame extends JFrame
         );
     }
 
-    @Override
-    protected void processWindowEvent(WindowEvent e) {
-        if (e.getID() == WindowEvent.WINDOW_CLOSING && !isExiting) {
-            confirmExit();
-        } else {
-            super.processWindowEvent(e);
-        }
-    }
-
+    /**
+     * Создает окно лога
+     * Инициализирует окно с источником логов и добавляет тестовое сообщение
+     */
     protected LogWindow createLogWindow()
     {
         LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource());
@@ -112,6 +110,10 @@ public class MainApplicationFrame extends JFrame
         return logWindow;
     }
 
+    /**
+     * Добавляет внутреннее окно в рабочую область
+     * @param frame внутреннее окно для добавления
+     */
     protected void addWindow(JInternalFrame frame)
     {
         desktopPane.add(frame);
@@ -248,6 +250,10 @@ public class MainApplicationFrame extends JFrame
         return item;
     }
 
+    /**
+     * Устанавливает LookAndFeel приложения
+     * @param className полное имя класса
+     */
     private void setLookAndFeel(String className)
     {
         try
